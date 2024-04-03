@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>ChatBot</title>
+  <link rel="stylesheet" href="./index.css">
+</head>
+<body>
+  <div class="chat-container"></div>
+  <div class="typing-container">
+    <div class="typing-content">
+      <div class="typing-textarea">
+        <textarea id="chat-input" spellcheck="false" placeholder="Enter a prompt here" required></textarea>
+        <button id="send-btn">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const chatInput = document.getElementById("chat-input");
+    const sendButton = document.getElementById("send-btn");
+    const chatContainer = document.querySelector(".chat-container");
+
+    sendButton.addEventListener("click", async () => {
+      const userText = chatInput.value.trim();
+      if (!userText) return;
+
+      const response = await fetch('http://localhost:3000/api/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ userText })
+      });
+
+      if (!response.ok) {
+        console.error('Error:', response.statusText);
+        return;
+      }
+
+      const data = await response.json();
+      displayChat(userText, 'user');
+      displayChat(data.response, 'bot');
+
+      chatInput.value = '';
+    });
+
+    const displayChat = (message, role) => {
+      const chatDiv = document.createElement('div');
+      chatDiv.classList.add('chat', role === 'user' ? 'outgoing' : 'incoming');
+      chatDiv.innerHTML = `
+        <div class="chat-content">
+          <div class="chat-details">
+            <img src="${role === 'user' ? './images/user.jpg' : './images/chatgpt.jpg'}" alt="${role}-img">
+            <p>${message}</p>
+          </div>
+        </div>
+      `;
+      chatContainer.appendChild(chatDiv);
+      chatContainer.scrollTo(0, chatContainer.scrollHeight);
+    };
+  </script>
+</body>
+</html>
